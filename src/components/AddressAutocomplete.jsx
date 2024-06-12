@@ -1,5 +1,5 @@
 // src/components/AddressAutocomplete.js
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import {
   LoadScript,
   Autocomplete,
@@ -18,6 +18,8 @@ const AddressAutocomplete = ({ onAddressSelect }) => {
   const [address, setAddress] = useState("");
   const [location, setLocation] = useState(null);
   const autocompleteRef = useRef(null);
+  const mapRef = useRef(null);
+  const [cursor, setCursor] = useState("default");
 
   const handlePlaceChanged = () => {
     const place = autocompleteRef.current.getPlace();
@@ -30,6 +32,48 @@ const AddressAutocomplete = ({ onAddressSelect }) => {
       setLocation({ lat: latitude, lng: longitude });
       onAddressSelect({ formattedAddress, placeId, latitude, longitude });
     }
+  };
+
+  const handleMapClick = (event) => {
+    console.log("Address: ", event);
+    const address = event.formattedAddress;
+    const placeId = event.placeId;
+    const latitude = event.latLng.lat();
+    const longitude = event.latLng.lng();
+    setLocation({ lat: latitude, lng: longitude });
+
+    const geocoder = new window.google.maps.Geocoder();
+    geocoder.geocode(
+      {
+        formattedAddress: address,
+        placeId: placeId,
+        location: { lat: latitude, lng: longitude },
+      },
+      (results, status) => {
+        if (status === "OK" && results[0]) {
+          const formattedAddress = results[0].formatted_address;
+          setAddress(formattedAddress);
+          onAddressSelect({
+            formattedAddress,
+            placeId: null,
+            latitude,
+            longitude,
+          });
+        } else {
+          console.error(
+            "Geocode was not successful for the following reason: " + status
+          );
+        }
+      }
+    );
+  };
+
+  const handleDrag = () => {
+    setCursor("grabbing");
+  };
+
+  const handleDragEnd = () => {
+    setCursor("default");
   };
 
   return (
@@ -49,14 +93,27 @@ const AddressAutocomplete = ({ onAddressSelect }) => {
           className="w-full border-indigo-700 border p-2"
         />
       </Autocomplete>
-      {location && (
+      {location ? (
         <GoogleMap
-          mapContainerStyles={mapContainerStyles}
+          mapContainerStyle={mapContainerStyles}
           center={location}
           zoom={15}
+          onClick={handleMapClick}
+          onDrag={handleDrag}
+          onDragEnd={handleDragEnd}
+          options={{
+            draggableCursor: cursor,
+            draggingCursor: "grabbing",
+          }}
         >
-          <Marker position={location} />
+          <Marker
+            position={location}
+            draggable={true}
+            onDragEnd={handleMapClick}
+          />
         </GoogleMap>
+      ) : (
+        ""
       )}
     </LoadScript>
   );

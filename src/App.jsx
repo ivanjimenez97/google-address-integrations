@@ -18,6 +18,7 @@ const App = () => {
       latitude,
       longitude,
     });
+    existingMarkers.push(addressDetails);
   };
 
   const handleSaveAddress = async () => {
@@ -37,12 +38,18 @@ const App = () => {
     }
   };
 
+  // Example list of existing markers
+  const existingMarkers = [];
+
   return (
     <div className="App container mx-auto px-3">
       <h1 className="text-indigo-700 my-3 font-bold uppercase text-xl xl:text-2xl">
         Address Autocomplete
       </h1>
-      <AddressAutocomplete onAddressSelect={handleAddressSelect} />
+      <AddressAutocomplete
+        onAddressSelect={handleAddressSelect}
+        existingMarkers={existingMarkers}
+      />
       {addressDetails && (
         <div className="w-full mt-4">
           <div className="w-full sm:w-1/2 lg:w-1/3 xl:w-1/4 bg-white p-3 rounded-xl">

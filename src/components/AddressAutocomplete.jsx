@@ -14,7 +14,7 @@ const mapContainerStyles = {
   width: "100%",
 };
 
-const AddressAutocomplete = ({ onAddressSelect }) => {
+const AddressAutocomplete = ({ onAddressSelect, existingMarkers }) => {
   const [address, setAddress] = useState("");
   const [location, setLocation] = useState(null);
   const autocompleteRef = useRef(null);
@@ -68,6 +68,17 @@ const AddressAutocomplete = ({ onAddressSelect }) => {
     );
   };
 
+  const handleMarkerClick = (marker) => {
+    setAddress(marker.formattedAddress);
+    setLocation({ lat: marker.lat, lng: marker.lng });
+    onAddressSelect({
+      formattedAddress: marker.formattedAddress,
+      placeId: marker.placeId,
+      latitude: marker.lat,
+      longitude: marker.lng,
+    });
+  };
+
   const handleDrag = () => {
     setCursor("grabbing");
   };
@@ -111,6 +122,15 @@ const AddressAutocomplete = ({ onAddressSelect }) => {
             draggable={true}
             onDragEnd={handleMapClick}
           />
+          {existingMarkers.length > 0
+            ? existingMarkers.map((marker, index) => (
+                <Marker
+                  key={index}
+                  position={{ lat: marker.lat, lng: marker.lng }}
+                  onClick={() => handleMarkerClick(marker)}
+                />
+              ))
+            : ""}
         </GoogleMap>
       ) : (
         ""
